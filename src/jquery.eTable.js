@@ -3,7 +3,6 @@
  * @date 2012/10/07
  *
  */
-
 (function() {
 
 	if (console && !console.time) {
@@ -16,6 +15,7 @@
 			console.info(name + ": " + time + 'ms');
 		};
 	}
+
 	/**
 	 * Convert Number to English ordinal
 	 *
@@ -179,6 +179,17 @@
 				this.__deleteRow(rowIndexs[r]);
 			}
 		};
+
+		this.__insertCol = function(colIndex, tds) {
+			console.info(this.table[0].rows);
+			var rows = this.table[0].rows;
+			$.each(rows, function(idx, row) {
+				row.insertCell(colIndex).innerHTML = 'ABC';
+			});
+		};
+		this.appendCol = function() {
+			this.__insertCol(-1);
+		}
 	};
 
 	$.fn.eTable = function() {
