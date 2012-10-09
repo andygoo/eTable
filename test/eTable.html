@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>jQuery eTable Plugin Test</title>
+		<script type="text/javascript" src="../libs/jquery-1.7.2.js"></script>
+		<script type="text/javascript" src="../src/jquery.eTable.js"></script>
+		<script type="text/javascript">
+			$(function() {
+				var $table = $("#table1").eTable();
+				// insert
+				$("#insertToFirstRow").click(function() {
+					//var $table = $("#table1").jTable();
+					$table.insertToFirstRow(['first1', 'first2', 'first3', 'first4']);
+				});
+				$("#appendRow").click(function() {
+					$table.appendRow([$("<input type='text'/>").focus(function() {
+						alert("abc");
+					}), '<input type="radio"/>', 3, 4, 5]);
+				});
+				$("#insertToLastRow").click(function() {
+					//var $table = $("#table1").jTable();
+					$table.insertToLastRow(['last1', 'last2', 100, 110, 120]);
+				});
+				$("#insertBeforeRow").click(function() {
+					//var $table = $("#table1").jTable();
+					$table.insertBeforeRow(3, ['3Before1', '3Before2', '3Before3', '3Before4']);
+				});
+				$("#insertAfterRow").click(function() {
+					//var $table = $("#table1").jTable();
+					$table.insertAfterRow(3, ['3after1', '3after2', '3after3', '3after4']);
+				});
+
+				// delete
+				$("#deleteFirstRow").click(function() {
+					$table.deleteFirstRow();
+				});
+
+				$("#deleteLastRow").click(function() {
+					$table.deleteLastRow();
+				});
+
+				$("#deleteRow").click(function() {
+					var ches = $("table :checked");
+					var iLen = ches.length;
+					if (iLen === 0) {
+						alert("Please select Delete Rows");
+						return;
+					}
+					for (var i = 0; i < iLen; i++) {
+						var index = ches[i].parentNode.parentNode.rowIndex;
+						$table.deleteRow(index);
+					}
+				});
+
+				$("#deleteRows").click(function() {
+					var rowIndexs = [1, 3, 4];
+					$table.deleteRows(rowIndexs);
+				});
+			});
+		</script>
+	</head>
+
+	<body>
+		<div>
+			<header>
+				<h1>eTable</h1>
+			</header>
+			<nav>
+				<p>
+					<button id='insertToFirstRow'>
+						insert to first row
+					</button>
+					<button id='appendRow'>
+						append row
+					</button>
+					<button id='insertToLastRow'>
+						insert to last row
+					</button>
+					<button id='insertBeforeRow'>
+						insert before the 3rd row
+					</button>
+					<button id='insertAfterRow'>
+						insert after the 3rd row
+					</button>
+				</p>
+				<p>
+					<button id='deleteFirstRow'>
+						delete first row
+					</button>
+					<button id='deleteLastRow'>
+						delete last row
+					</button>
+					<button id='deleteRow'>
+						delete row
+					</button>
+					<button id='deleteRows'>
+						batch delete rows(1,3,4)
+					</button>
+				</p>
+				<table border="1" width="90%" id="table1">
+					<script type="text/javascript">
+						for (var i = 0; i < 6; i++) {
+							document.writeln("<tr>");
+							document.writeln("<td><input type='checkbox'/></td>");
+							for (var j = 0; j < 10; j++) {
+								document.writeln("<td>cell_" + i + j + "</td>");
+							}
+							document.writeln("</tr>");
+						}
+					</script>
+				</table>
+			</nav>
+			<footer>
+				<p>
+					&copy; Copyright  by LeeYee
+				</p>
+			</footer>
+		</div>
+	</body>
+</html>
