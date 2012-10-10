@@ -6,14 +6,27 @@
 (function() {
 
 	if (console && !console.time) {
-		console._times = {};
-		console.time = function(name) {
-			console._times[name] = new Date();
-		};
-		console.timeEnd = function(name) {
-			var time = new Date() - console._times[name];
-			console.info(name + ": " + time + 'ms');
-		};
+		if (!console.time) {
+			console._times = {};
+			console.time = function(name) {
+				console._times[name] = new Date();
+			};
+			console.timeEnd = function(name) {
+				var time = new Date() - console._times[name];
+				console.info(name + ": " + time + 'ms');
+			};
+		}
+		if (!console.error) {
+			alert("no error");
+			console.error = function(msg) {
+				alert(msg);
+			}
+		}
+		if (!console.warn) {
+			console.warn = function(msg) {
+				alert(msg);
+			}
+		}
 	}
 
 	/**
@@ -58,10 +71,19 @@
 		 *            {Array}
 		 */
 		this.__insertRow = function(rowIndex, tds) {
+			if (!$.isArray(tds) || tds.length === 0) {//参数tds为长度不为0的数组
+				console.error("table cell data type should be an array and length of not less then 0!");
+				return false;
+			}
+			if (rowIndex < -1) {//插入行位置不能小于-1
+				console.error("The rowIndex (" + rowIndex + ") can not be less than -1 !");
+				return false;
+			}
+
 			var rows = this.getRow();
 
-			if (rowIndex > rows) {
-				alert("The " + ordinal(rowIndex) + " row can not be inserted, because the table is only " + rows + " rows");
+			if (rowIndex > rows) {//插入行位置不能大于当前总行数
+				console.error("The " + ordinal(rowIndex + 1) + " row can not be inserted, because the table is only " + rows + " rows");
 				return false;
 			}
 			console.info('rows: ' + this.getRow() + ' rowIndex: ' + rowIndex);
@@ -75,7 +97,47 @@
 				}
 			});
 		};
+		/**
+		 * Private Method Insert Col.
+		 *
+		 * @param colIndex
+		 *            {Number}
+		 * @param tds
+		 *            {Array}
+		 */
+		this.__insertCol = function(colIndex, tds) {
+			if (!$.isArray(tds) || tds.length === 0) {//参数tds为长度不为0的数组
+				console.error("table cell data type should be an array and length of not less then 0!");
+				return false;
+			}
+			if (colIndex < -1) {//插入列位置不能小于-1
+				console.error("The colIndex (" + colIndex + ") can not be less than -1 !");
+				return false;
+			}
 
+			var self = this, rows = this.table[0].rows;
+
+			$.each(tds, function(idx, td) {
+				var row = rows[idx];
+				if (!row) {
+					row = $("<tr>")[0];
+					self.table.append(row);
+				}
+
+				var cells = row.cells.length;
+
+				if (colIndex > cells) {//插入单元格位置不能大于当前行所包含的单元格
+					console.warn("the " + ordinal(colIndex + 1) + " cell can not be append, because the " + ordinal(idx + 1) + " row only " + cells + " cells");
+				} else {
+
+					if ( td instanceof jQuery) {
+						$(row.insertCell(colIndex)).append(td);
+					} else {
+						row.insertCell(colIndex).innerHTML = td;
+					}
+				}
+			});
+		};
 		/**
 		 * Pirvate Method Delete Row
 		 *
@@ -100,7 +162,8 @@
 		 *
 		 */
 		this.appendRow = function(tds) {
-			this.__insertRow(this.getRow(), tds);
+			//this.__insertRow(this.getRow(), tds);
+			this.__insertRow(-1, tds);
 		};
 
 		/**
@@ -180,15 +243,19 @@
 			}
 		};
 
-		this.__insertCol = function(colIndex, tds) {
-			console.info(this.table[0].rows);
-			var rows = this.table[0].rows;
-			$.each(rows, function(idx, row) {
-				row.insertCell(colIndex).innerHTML = 'ABC';
-			});
+		this.appendCol = function(tds) {
+			this.__insertCol(-1, tds);
 		};
-		this.appendCol = function() {
-			this.__insertCol(-1);
+		this.insertToFirstCol = function(tds) {
+			this.__insertCol(0, tds);
+		};
+		this.insertToLastCol = this.appendCol;
+
+		this.insertBeforeCol = function(colIndex, tds) {
+			this.__insertCol(colIndex - 1, tds);
+		}
+		this.insertAfterCol = function(colIndex, tds) {
+			this.__insertCol(colIndex, tds);
 		}
 	};
 
