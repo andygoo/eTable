@@ -62,7 +62,7 @@
 					$table.insertAfterRow(3, ['3after1', '3after2', '3after3', '3after4']);
 				});
 
-				// delete
+				// delete row
 				$("#deleteFirstRow").click(function() {
 					$table.deleteFirstRow();
 				});
@@ -85,7 +85,7 @@
 				});
 
 				$("#deleteRows").click(function() {
-					var rowIndexs = [1, 3, 4];
+					var rowIndexs = [0, 2, 3];
 					$table.deleteRows(rowIndexs);
 				});
 
@@ -103,7 +103,21 @@
 					$table.insertBeforeCol(2, ['3Before1', '3Before2', '3Before3', '3Before4']);
 				});
 				$("#insertAfterCol").click(function() {
-					$table.insertAfterCol(5, ['3after1', '3after2', '3after3', '3after4']);
+					$table.insertAfterCol(3, ['3after1', '3after2', '3after3', '3after4']);
+				});
+				// delete col
+				$("#deleteFirstCol").click(function() {
+					$table.deleteFirstCol();
+				});
+				$("#deleteLastCol").click(function() {
+					$table.deleteLastCol();
+				});
+				$("#deleteCol").click(function(){
+					$table.deleteCol(3);
+				});
+				$("#deleteCols").click(function(){
+					var colIndexs = [1,2,3];
+					$table.deleteCols(colIndexs);
 				});
 			});
 		</script>
@@ -166,6 +180,18 @@
 					</button>
 					<button id='insertAfterCol' title="插入到指定列后">
 						insert after the 3rd col
+					</button>
+					<button id='deleteFirstCol' title="删除第一列">
+						delete first col
+					</button>
+					<button id='deleteLastCol' title="删除最后一列">
+						delete last col
+					</button>
+					<button id='deleteCol' title="删除指定列">
+						delete the 4rd col
+					</button>
+					<button id='deleteCols' title="删除多列">
+						batch delete cols(2,3,4)
 					</button>
 				</fieldset>
 				<table width="90%" id="table1">
