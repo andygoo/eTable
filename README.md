@@ -115,7 +115,7 @@ jQuery eTable Plugin 提供对表格操作的一些基本方法.其实质是通�
     var cells = ['cell1','cell2','cell3'];
     $eTable.insertBeforeCol(2,cells); //在第2列前插入
     
-###**.insertAfterCol()i**
+###**.insertAfterCol()**
 在指定列后插入一列.
 
     var cells = ['cell1','cell2','cell3'];
