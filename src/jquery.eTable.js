@@ -58,10 +58,21 @@
 		/**
 		 * Get the number of rows
 		 */
-		this.getRow = function() {
+		this.getRows = function() {
 			return this.table.find("tr").length;
 		};
-
+		/**
+		 * Get the number of cols
+		 */
+		this.getCols = function() {
+			console.time("getCols");
+			var max_col = 0;
+			$.each(this.table.find("tr"), function(idx, tr) {
+				max_col = Math.max(max_col, $(tr).find("td").length);
+			});
+			console.timeEnd("getCols");
+			return max_col;
+		}
 		/**
 		 * Private Method Insert Row.
 		 *
@@ -69,9 +80,12 @@
 		 *            {Number}
 		 * @param cells
 		 *            {Array}
+		 * @param insertMethodName
+		 * 			  {String}  [before|after]
 		 */
-		this.__insertRow = function(rowIndex, cells) {
-			if (!$.isArray(cells) || cells.length === 0) {// 参数tds为长度不为0的数组
+		this.__insertRow = function(rowIndex, cells, insertMethodName) {
+			console.time("insertRow");
+			if (!$.isArray(cells) || cells.length === 0) {// 参数cells为长度不为0的数组
 				console.error("table cell data type should be an array and length of not less then 0!");
 				return false;
 			}
@@ -80,23 +94,37 @@
 				return false;
 			}
 
-			var rows = this.getRow();
+			var rows = this.getRows();
 
 			if (rowIndex > rows) {// 插入行位置不能大于当前总行数
 				console.error("The " + ordinal(rowIndex + 1) + " row can not be inserted, because the table is only " + rows + " rows");
 				return false;
 			}
-			console.info('rows: ' + this.getRow() + ' rowIndex: ' + rowIndex);
-			var tr = this.table[0].insertRow(rowIndex);
+			console.info('rows: ' + this.getRows() + ' rowIndex: ' + rowIndex);
 
+			/*
+			* it's easy to get the object of `TableRow` by `Table.insertRow` method,
+			* but the browser will reflow and repain DOM tree when every call `TableRow.insertCell` method!
+			*/
+			// var tr = this.table[0].insertRow(rowIndex);
+
+			var addTr = $("<tr>")[0];
 			$.each(cells, function(idx, cell) {
 				if ( cell instanceof jQuery) {
-					$(tr.insertCell(idx)).append(cell);
+					$(addTr.insertCell(idx)).append(cell);
 				} else {
-					tr.insertCell(idx).innerHTML = cell;
+					addTr.insertCell(idx).innerHTML = cell;
 				}
 			});
+			var $tr = this.table.find('tr:eq(' + rowIndex + ")");
+			if ($tr[0]) {
+				$tr[insertMethodName](addTr);
+			} else {
+				this.table.append(addTr);
+			}
+			console.timeEnd("insertRow");
 		};
+
 		/**
 		 * Private Method Insert Col.
 		 *
@@ -106,7 +134,8 @@
 		 *            {Array}
 		 */
 		this.__insertCol = function(colIndex, cells) {
-			if (!$.isArray(cells) || cells.length === 0) {// 参数tds为长度不为0的数组
+			console.time("insertCol");
+			if (!$.isArray(cells) || cells.length === 0) {// 参数cells为长度不为0的数组
 				console.error("table cell data type should be an array and length of not less then 0!");
 				return false;
 			}
@@ -115,27 +144,35 @@
 				return false;
 			}
 
-			var self = this, rows = this.table[0].rows;
+			var self = this, rows = this.table[0].rows, row_len = rows.length;
 
-			$.each(cells, function(idx, cell) {
-				var row = rows[idx];
+			//recursive insert table Column
+			(function addCol(iRow) {
+
+				if (row_len && iRow >= row_len)
+					return;
+
+				var row = rows[iRow];
+
 				if (!row) {
 					row = $("<tr>")[0];
 					self.table.append(row);
 				}
-
-				var iCell = row.cells.length;
-
-				if (colIndex > iCell) {// 插入单元格位置不能大于当前行所包含的单元格数量
-					console.warn("the " + ordinal(colIndex + 1) + " cell can not be append, because the " + ordinal(idx + 1) + " row only " + iCell + " cells");
+				console.info("colIndex: " + colIndex, " row.cells: " + row.cells.length);
+				if (colIndex > row.cells.length) {
+					addCol(++iRow);
 				} else {
+					var cell = cells.shift();
 					if ( cell instanceof jQuery) {
 						$(row.insertCell(colIndex)).append(cell);
 					} else {
 						row.insertCell(colIndex).innerHTML = cell;
 					}
+					if (cells.length != 0)
+						addCol(++iRow);
 				}
-			});
+			})(0);
+			console.timeEnd("insertCol");
 		};
 		/**
 		 * Pirvate Method Delete Row
@@ -149,20 +186,23 @@
 		 *
 		 */
 		this.__deleteRow = function(rowIndex) {
-			if (this.getRow() === 0) {
+			console.time("deleteRow");
+			if (this.getRows() === 0) {
 				console.warn("Empty table !");
 				return;
 			}
-			if (rowIndex > this.getRow() - 1) {
+			if (rowIndex > this.getRows() - 1) {
 				console.warn("the " + ordinal(rowIndex + 1) + " rows does not exist ");
 				return;
 			}
 			this.table[0].deleteRow(rowIndex);
-			console.info('rows: ' + this.getRow() + ' rowIndex: ' + rowIndex);
+			console.info('rows: ' + this.getRows() + ' rowIndex: ' + rowIndex);
+			console.timeEnd("deleteRow");
 		};
 
 		this.__deleteCol = function(colIndex) {
-			if (this.getRow() === 0) {
+			console.time("deleteCol");
+			if (this.getRows() === 0) {
 				console.warn("Empty table !");
 				return;
 			}
@@ -170,14 +210,15 @@
 			for (var r = rows.length - 1; r > -1; r--) {
 				var iCell = rows[r].cells.length;
 				if (colIndex > iCell - 1) {
-					console.error("the " + ordinal(colIndex + 1) + " cols does not exist");
-					break;
+					console.warn("the " + ordinal(colIndex + 1) + " cols does not exist");
+					continue;
 				}
 				rows[r].deleteCell(colIndex);
 				if (iCell === 1) {
 					this.__deleteRow(r);
 				}
 			}
+			console.timeEnd("deleteCol");
 		}
 		/**
 		 * Append a new row
@@ -187,8 +228,8 @@
 		 *
 		 */
 		this.appendRow = function(cells) {
-			// this.__insertRow(this.getRow(), cells);
-			this.__insertRow(-1, cells);
+			this.__insertRow(this.getRows() - 1, cells, 'after');
+			//this.__insertRow(-1, cells);
 		};
 
 		/**
@@ -198,7 +239,7 @@
 		 *            {Array}
 		 */
 		this.insertToFirstRow = function(cells) {
-			this.__insertRow(0, cells);
+			this.__insertRow(0, cells, 'before');
 		};
 
 		/**
@@ -215,7 +256,7 @@
 		 *            {Array}
 		 */
 		this.insertBeforeRow = function(rowIndex, cells) {
-			this.__insertRow(rowIndex - 1, cells);
+			this.__insertRow(rowIndex - 1, cells, "before");
 		};
 
 		/**
@@ -227,7 +268,7 @@
 		 *            {Array}
 		 */
 		this.insertAfterRow = function(rowIndex, cells) {
-			this.__insertRow(rowIndex, cells);
+			this.__insertRow(rowIndex - 1, cells, 'after');
 		};
 
 		/**
@@ -267,7 +308,7 @@
 		};
 
 		this.appendCol = function(cells) {
-			this.__insertCol(-1, cells);
+			this.__insertCol(this.getCols(), cells);
 		};
 		this.insertToFirstCol = function(cells) {
 			this.__insertCol(0, cells);
@@ -284,7 +325,7 @@
 			this.__deleteCol(0);
 		};
 		this.deleteLastCol = function() {
-			this.__deleteCol(-1);
+			this.__deleteCol(this.getCols() - 1);
 		};
 		this.deleteCol = function(colIndex) {
 			this.__deleteCol(colIndex);
@@ -302,5 +343,4 @@
 
 		return eTable;
 	};
-
 })(jQuery);
