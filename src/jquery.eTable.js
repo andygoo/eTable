@@ -316,7 +316,7 @@
 		this.insertToLastCol = this.appendCol;
 
 		this.insertBeforeCol = function(colIndex, cells) {
-			this.__insertCol(colIndex, cells);
+			this.__insertCol(colIndex - 1, cells);
 		};
 		this.insertAfterCol = function(colIndex, cells) {
 			this.__insertCol(colIndex, cells);
@@ -343,4 +343,4 @@
 
 		return eTable;
 	};
-})(jQuery);
+})(jQuery); 
