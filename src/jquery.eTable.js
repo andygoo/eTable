@@ -92,13 +92,13 @@
 				alert("table cell data type should be an array and length of not less then 0!");
 				return false;
 			}
-			if (rowIndex < -1) {// 插入行位置不能小于-1
+
+			if (rowIndex < -1 || rowIndex > rows) {// 插入行位置不能小于-1大于总行数
 				alert("The rowIndex (" + rowIndex + ") can not be less than -1 !");
 				return false;
 			}
 
 			var rows = this.getRows();
-
 			if (rowIndex > rows) {// 插入行位置不能大于当前总行数
 				alert("The " + ordinal(rowIndex + 1) + " row can not be inserted, because the table is only " + rows + " rows");
 				return false;
@@ -106,12 +106,15 @@
 			/*
 			* it's easy to get the object of `TableRow` by `Table.insertRow` method,
 			* but the browser will reflow and repain DOM tree when every call `TableRow.insertCell` method!
+			* 
+			* var newTr = this.table[0].insertRow(rowIndex);
 			*/
-			// var newTr = this.table[0].insertRow(rowIndex);
 			var newTr = $("<tr>");
+			
 			$.each(cells, function(idx, cell) {
 				newTr.append($('<td>').append(cell));
 			});
+			
 			var $tr = this.table.find('tr:eq(' + rowIndex + ")");
 			if ($tr[0]) {
 				$tr[insertMethodName](newTr);
@@ -135,8 +138,9 @@
 				alert("table cell data type should be an array and length of not less then 0!");
 				return false;
 			}
-			if (colIndex < -1) {// 插入列位置不能小于-1
-				alert("The colIndex (" + colIndex + ") can not be less than -1 !");
+			var iCol = this.getCols();
+			if (colIndex < -1 || colIndex > iCol) {// 插入列位置不能小于-1大于最大列数
+				alert("the colIndex " + colIndex + " ∉  [0," + iCol + "] !");
 				return false;
 			}
 
@@ -144,17 +148,16 @@
 
 			//recursive insert table Column
 			(function addCol(iRow) {
-
 				if (row_len && iRow >= row_len)
 					return;
 
 				var row = rows[iRow];
 
 				if (!row) {
-					row = $("<tr>");
+					row = self.table[0].insertRow(0);
 					self.table.append(row);
 				}
-				
+
 				if (colIndex > row.cells.length) {
 					addCol(++iRow);
 				} else {
@@ -185,29 +188,29 @@
 		this.__deleteRow = function(rowIndex) {
 			console.time("deleteRow");
 			if (this.getRows() === 0) {
-				console.warn("Empty table !");
-				return;
+				alert("Empty table !");
+				return false;
 			}
 			if (rowIndex > this.getRows() - 1) {
-				console.warn("the " + ordinal(rowIndex + 1) + " rows does not exist ");
-				return;
+				alert("the " + ordinal(rowIndex + 1) + " rows does not exist ");
+				return false;
 			}
 			this.table[0].deleteRow(rowIndex);
-			// console.info('rows: ' + this.getRows() + ' rowIndex: ' + rowIndex);
+
 			console.timeEnd("deleteRow");
 		};
 
 		this.__deleteCol = function(colIndex) {
 			console.time("deleteCol");
 			if (this.getRows() === 0) {
-				console.warn("Empty table !");
-				return;
+				alert("Empty table !");
+				return false;
 			}
 			var rows = this.table[0].rows;
 			for (var r = rows.length - 1; r > -1; r--) {
 				var iCell = rows[r].cells.length;
 				if (colIndex > iCell - 1) {
-					console.warn("the " + ordinal(colIndex + 1) + " cols does not exist");
+					alert("the " + ordinal(colIndex + 1) + " cols does not exist");
 					continue;
 				}
 				rows[r].deleteCell(colIndex);
