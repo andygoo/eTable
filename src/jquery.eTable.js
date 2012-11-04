@@ -4,8 +4,22 @@
  *
  */
 (function() {
-
-	if (console && !console.time) {
+	if (console) {
+		if (!console.info) {
+			console.info = function(msg) {
+				alert(msg);
+			}
+		}
+		if (!console.warn) {
+			console.warn = function(msg) {
+				console.info(msg);
+			}
+		}
+		if (!console.error) {
+			console.error = function(msg) {
+				console.info(msg);
+			}
+		}
 		if (!console.time) {
 			console._times = {};
 			console.time = function(name) {
@@ -15,17 +29,6 @@
 				var time = new Date() - console._times[name];
 				console.info(name + ": " + time + 'ms');
 			};
-		}
-		if (!console.error) {
-			alert("no error");
-			console.error = function(msg) {
-				alert(msg);
-			}
-		}
-		if (!console.warn) {
-			console.warn = function(msg) {
-				alert(msg);
-			}
 		}
 	}
 
@@ -86,41 +89,34 @@
 		this.__insertRow = function(rowIndex, cells, insertMethodName) {
 			console.time("insertRow");
 			if (!$.isArray(cells) || cells.length === 0) {// 参数cells为长度不为0的数组
-				console.error("table cell data type should be an array and length of not less then 0!");
+				alert("table cell data type should be an array and length of not less then 0!");
 				return false;
 			}
 			if (rowIndex < -1) {// 插入行位置不能小于-1
-				console.error("The rowIndex (" + rowIndex + ") can not be less than -1 !");
+				alert("The rowIndex (" + rowIndex + ") can not be less than -1 !");
 				return false;
 			}
 
 			var rows = this.getRows();
 
 			if (rowIndex > rows) {// 插入行位置不能大于当前总行数
-				console.error("The " + ordinal(rowIndex + 1) + " row can not be inserted, because the table is only " + rows + " rows");
+				alert("The " + ordinal(rowIndex + 1) + " row can not be inserted, because the table is only " + rows + " rows");
 				return false;
 			}
-			console.info('rows: ' + this.getRows() + ' rowIndex: ' + rowIndex);
-
 			/*
 			* it's easy to get the object of `TableRow` by `Table.insertRow` method,
 			* but the browser will reflow and repain DOM tree when every call `TableRow.insertCell` method!
 			*/
-			// var tr = this.table[0].insertRow(rowIndex);
-
-			var addTr = $("<tr>")[0];
+			// var newTr = this.table[0].insertRow(rowIndex);
+			var newTr = $("<tr>");
 			$.each(cells, function(idx, cell) {
-				if ( cell instanceof jQuery) {
-					$(addTr.insertCell(idx)).append(cell);
-				} else {
-					addTr.insertCell(idx).innerHTML = cell;
-				}
+				newTr.append($('<td>').append(cell));
 			});
 			var $tr = this.table.find('tr:eq(' + rowIndex + ")");
 			if ($tr[0]) {
-				$tr[insertMethodName](addTr);
+				$tr[insertMethodName](newTr);
 			} else {
-				this.table.append(addTr);
+				this.table.append(newTr);
 			}
 			console.timeEnd("insertRow");
 		};
@@ -136,11 +132,11 @@
 		this.__insertCol = function(colIndex, cells) {
 			console.time("insertCol");
 			if (!$.isArray(cells) || cells.length === 0) {// 参数cells为长度不为0的数组
-				console.error("table cell data type should be an array and length of not less then 0!");
+				alert("table cell data type should be an array and length of not less then 0!");
 				return false;
 			}
 			if (colIndex < -1) {// 插入列位置不能小于-1
-				console.error("The colIndex (" + colIndex + ") can not be less than -1 !");
+				alert("The colIndex (" + colIndex + ") can not be less than -1 !");
 				return false;
 			}
 
@@ -155,10 +151,10 @@
 				var row = rows[iRow];
 
 				if (!row) {
-					row = $("<tr>")[0];
+					row = $("<tr>");
 					self.table.append(row);
 				}
-				console.info("colIndex: " + colIndex, " row.cells: " + row.cells.length);
+				
 				if (colIndex > row.cells.length) {
 					addCol(++iRow);
 				} else {
@@ -174,6 +170,7 @@
 			})(0);
 			console.timeEnd("insertCol");
 		};
+
 		/**
 		 * Pirvate Method Delete Row
 		 * <ul>
@@ -196,7 +193,7 @@
 				return;
 			}
 			this.table[0].deleteRow(rowIndex);
-			console.info('rows: ' + this.getRows() + ' rowIndex: ' + rowIndex);
+			// console.info('rows: ' + this.getRows() + ' rowIndex: ' + rowIndex);
 			console.timeEnd("deleteRow");
 		};
 
@@ -219,7 +216,8 @@
 				}
 			}
 			console.timeEnd("deleteCol");
-		}
+		};
+
 		/**
 		 * Append a new row
 		 *
@@ -229,7 +227,6 @@
 		 */
 		this.appendRow = function(cells) {
 			this.__insertRow(this.getRows() - 1, cells, 'after');
-			//this.__insertRow(-1, cells);
 		};
 
 		/**
@@ -338,9 +335,6 @@
 	};
 
 	$.fn.eTable = function() {
-
-		var eTable = new ETable(this);
-
-		return eTable;
+		return new ETable(this);
 	};
-})(jQuery); 
+})(jQuery);
