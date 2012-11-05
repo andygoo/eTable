@@ -3,7 +3,7 @@
  * @date 2012/10/07
  *
  */
-(function() {
+(function($) {
 	if (console) {
 		if (!console.info) {
 			console.info = function(msg) {
